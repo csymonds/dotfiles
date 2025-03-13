@@ -1,65 +1,62 @@
-#!/bin/sh
+#!/bin/bash
 
-# apt
-sudo apt install build-essential cmake \
-libncurses5-dev libgnome2-dev libgnomeui-dev \
-libgtk2.0-dev libatk1.0-dev libbonoboui2-dev \
-libcairo2-dev libx11-dev libxpm-dev libxt-dev \
-python-dev python3-dev curl tmux
+echo "Setting up environment for EC2 Amazon Linux 2023"
 
-# vim 
-mkdir ~/ven
-git clone https://github.com/vim/vim.git ~/ven 
-cd ~/ven/vim
-./configure --with-features=huge \
-            --enable-multibyte \
-	    --enable-pythoninterp=yes \
-	    --with-python-config-dir=/usr/lib/python2.7/config-x86_64-linux-gnu \
-	    --enable-python3interp=yes \
-	    --with-python3-config-dir=/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu \
-            --enable-gui=gtk2 \
-            --enable-cscope \
-	   --prefix=/usr/local
-make VIMRUNTIMEDIR=/usr/local/share/vim/vim81
-sudo make install
+# Check if we're running as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Some steps require sudo. You may be prompted for your password."
+fi
 
+# Install essential packages
+echo "Installing essential packages..."
+sudo dnf update -y
+sudo dnf install -y git vim tmux nodejs gcc make curl wget tar zip unzip
 
-# backup
-cd ~/
-mkdir bk
-mv .bashrc bk/bashrc_bk
-mv .vimrc bk/vimrc_bk
+# Basic development tools
+sudo dnf group install -y "Development Tools"
 
+# Optional packages - uncomment if needed
+# sudo dnf install -y python3-devel
 
-# install the dotfiles so the path is set for gimme
-cd .dotfiles
+# Create backup directory
+echo "Creating backup directory..."
+mkdir -p ~/bk
+
+# Backup existing config files
+if [ -f ~/.bashrc ]; then
+  echo "Backing up existing .bashrc..."
+  cp ~/.bashrc ~/bk/bashrc_bk
+fi
+
+if [ -f ~/.vimrc ]; then
+  echo "Backing up existing .vimrc..."
+  cp ~/.vimrc ~/bk/vimrc_bk
+fi
+
+# Install dotfiles
+echo "Installing dotfiles..."
 ./install.sh
-cd ~/
-source .bashrc
 
+# Set up vim plugins
+echo "Setting up Vim plugins..."
+vim +PlugInstall +qall
 
-# go gimme
-mkdir bin
-curl -sL -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-chmod +x ~/bin/gimme
-eval "$(GIMME_GO_VERSION=1.15 gimme)"
-echo "# gimme" >> ~/.bash_profile
-echo 'eval "$(GIMME_GO_VERSION=1.15 gimme)"' >> ~/.bash_profile
+# Set up CoC extensions for Vim
+echo "Installing basic CoC extensions..."
+mkdir -p ~/.config/coc/extensions
+cd ~/.config/coc/extensions
+if [ ! -f package.json ]; then
+  echo '{"dependencies":{}}' > package.json
+fi
+npm install --global-style --ignore-scripts --no-bin-links --no-package-lock --only=prod \
+  coc-json coc-tsserver coc-pyright
 
-
-# set up the Go environment
-mkdir -p ~/dev/go/bin
-mkdir -p ~/dev/go/src/github.com/csymonds
-
-
-# .dotfiles
-cd ~/.dotfiles
-git submodule init
-git submodule update --recursive
-
-
-# YCM
-cd ~/.dotfiles/vim/vim.symlink/bundle/YouCompleteMe
-git submodule update --init --recursive
-python3 install.py --clang-completer --go-completer
+# Final steps
+echo ""
+echo "Setup complete! Please log out and back in or run 'source ~/.bashrc' to activate changes."
+echo ""
+echo "If you need specific language support in Vim, you can add more CoC extensions."
+echo "For example, Python: :CocInstall coc-pyright"
+echo "JavaScript/TypeScript: :CocInstall coc-tsserver"
+echo "See https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions for more options."
 

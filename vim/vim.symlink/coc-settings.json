@@ -1,0 +1,39 @@
+{
+  "suggest.noselect": false,
+  "suggest.enablePreselect": false,
+  "suggest.triggerAfterInsertEnter": true,
+  "suggest.timeout": 5000,
+  "suggest.enablePreview": true,
+  "suggest.floatEnable": true,
+  "suggest.detailField": "preview",
+  "suggest.snippetIndicator": "►",
+  "suggest.triggerCompletionWait": 100,
+  "suggest.echodocSupport": true,
+  
+  "diagnostic.errorSign": "✘",
+  "diagnostic.warningSign": "⚠",
+  "diagnostic.infoSign": "ℹ",
+  "diagnostic.hintSign": "➤",
+  
+  "codeLens.enable": true,
+  
+  "coc.preferences.formatOnSaveFiletypes": [
+    "javascript",
+    "typescript",
+    "json",
+    "python",
+    "markdown"
+  ],
+  
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  
+  "languageserver": {
+    "bash": {
+      "command": "bash-language-server",
+      "args": ["start"],
+      "filetypes": ["sh"],
+      "ignoredRootPaths": ["~"]
+    }
+  }
+} 

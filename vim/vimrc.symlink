@@ -1,7 +1,36 @@
 set nocompatible
 
-call pathogen#infect()
+" Auto-install vim-plug if not present
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
+" Plugin section
+call plug#begin('~/.vim/plugged')
+
+" File navigation
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" Appearance
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'altercation/vim-colors-solarized'
+Plug 'morhetz/gruvbox'  " Alternative modern colorscheme
+
+" Code completion and language support
+Plug 'neoclide/coc.nvim', {'branch': 'release'} " Modern completion
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' } " Keep vim-go if you still use Go
+
+" Notes and documentation
+Plug 'xolox/vim-notes' | Plug 'xolox/vim-misc'  " Keep your existing notes plugin
+Plug 'vimwiki/vimwiki', { 'on': ['VimwikiIndex', 'VimwikiUISelect'] } " Modern alternative
+
+call plug#end()
+
+" Basic settings
 set nowrap
 set tabstop=4
 set shiftwidth=4
@@ -27,11 +56,19 @@ set formatoptions+=roqn
 " size in KB
 set maxmempattern=20000
 
-" vim-colors-solarized
-"syntax enable
-"set background=dark
-colorscheme desert
-"colorscheme solarized
+" Colorscheme setup
+syntax enable
+set background=dark
+" Try gruvbox first, fallback to desert if not available
+try
+  colorscheme gruvbox
+catch /^Vim\%((\a\+)\)\=:E185/
+  try
+    colorscheme solarized
+  catch /^Vim\%((\a\+)\)\=:E185/
+    colorscheme desert
+  endtry
+endif
 
 " Set color bar to maintain readability
 set cc=80
@@ -42,11 +79,11 @@ set wildignore=*.swp,*.bak,*.pyc,*.class,*.jar,*.pdf,*.aux,*.bbl,*.bcf,*.blg,*.c
 " Alter recognition of file extensions
 au BufNewFile,BufRead *.sbt setlocal ft=scala
 au BufNewFile,BufRead *.gnu setlocal ft=gnuplot
-au BufNewFile,BufRead *.md setlocal ft=notes
+au BufNewFile,BufRead *.md setlocal ft=markdown
 
 filetype plugin indent on
 autocmd Filetype python set nosmartindent copyindent
-autocmd Filetype tex set wrap linebreak spell spelllang=en " tw=100 fo=tcqw
+autocmd Filetype tex set wrap linebreak spell spelllang=en
 autocmd Filetype make set noexpandtab
 autocmd Filetype go set noexpandtab
 
@@ -55,17 +92,13 @@ let g:tex_flavor = "latex"
 
 " airline
 set t_Co=16
+let g:airline_theme='solarized'
+let g:airline_powerline_fonts = 0
+let g:airline#extensions#tabline#enabled = 1
 
-" Ctrlp
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_custom_ignore = '\v[\/](out|tmp|\.(git|hg|svn))$'
-
-" Trim whitespace when file is written
-" autocmd BufWritePre * :%s/\s\+$//e
-
-" Let go fmt do the work for *.go
-autocmd FileType go autocmd BufWritePre <buffer> GoFmt
+" fzf (replaces Ctrlp)
+nnoremap <C-p> :Files<CR>
+let g:fzf_layout = { 'down': '~40%' }
 
 " Show when lines have wrapped
 let &showbreak='>>'
@@ -87,7 +120,6 @@ nnoremap j gj
 nnoremap k gk
 
 " More accessible make
-" nnoremap mm :make!<CR>
 nnoremap mm :!ninja<CR>
 nnoremap ,, :!./push<CR>
 
@@ -100,26 +132,16 @@ noremap <right> <nop>
 " Get out of insert mode without leaving the home row
 inoremap jj <ESC>
 
-" CLANG Format
-function FormatFile()
-    let l:lines="all"
-    py3f ~/.dotfiles/vim/vim.symlink/clang-format.py
-endfunction
-map <C-K> :call FormatFile()<cr>
-imap <C-K> <c-o>:call FormatFile()<cr>
-
 " Aliases for ex commands
 cnoreabbrev W w
 cnoreabbrev Q q
 cnoreabbrev WQ wq
 cnoreabbrev Wq wq
 
-" vim-notes plugin
-" note: vim-misc required for vim-notes
+" vim-notes plugin configuration
 let g:notes_directories = ['~/.notes']
 let g:notes_smart_quotes = 0
 let g:notes_unicode_enabled = 0
-
 let g:notes_indents = 1
 let g:notes_indents_right = ">>"
 let g:notes_indents_left = "<<"
@@ -128,5 +150,21 @@ highlight link notesEmailAddr Directory
 highlight link notesRealURL Special
 highlight link notesShortHeading None
 
-" YouCompleteMe (ycm) plugin
-let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
+" CoC configuration (replaces YouCompleteMe)
+" Use tab for trigger completion with characters ahead and navigate
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use <c-space> to trigger completion
+inoremap <silent><expr> <c-space> coc#refresh()
+
+" Use <cr> to confirm completion
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"

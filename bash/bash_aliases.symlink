@@ -1,13 +1,42 @@
 # Aliases for ls
-alias ll='ls -al --color=auto'
+# Amazon Linux uses GNU ls which supports --color
+alias ll='ls -alF --color=auto'
 alias ls='ls --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
 
-# For YouCompleteMe Bash plugin
-alias cmake='cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=on'
-alias dmake='cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on'
+# Color for common commands
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias diff='diff --color=auto'
 
-# gdb
+# Grep shortcuts
+alias grepp='grep -riIn'
+
+# Useful shortcuts
+alias update='sudo dnf update -y'
+alias cls='clear'
+alias h='history'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# gdb with TUI mode
 alias gdb='gdb -tui'
 
-# grep
-alias grepp='grep -riIn'
+# Default to human-readable file sizes
+alias df='df -h'
+alias du='du -h'
+
+# Safety features
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+# Git shortcuts
+alias gs='git status'
+alias gl='git log --oneline --graph'
+alias ga='git add'
+alias gc='git commit'
+alias gd='git diff'
