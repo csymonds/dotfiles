@@ -59,4 +59,3 @@ echo "If you need specific language support in Vim, you can add more CoC extensi
 echo "For example, Python: :CocInstall coc-pyright"
 echo "JavaScript/TypeScript: :CocInstall coc-tsserver"
 echo "See https://github.com/neoclide/coc.nvim/wiki/Using-coc-extensions for more options."
-
