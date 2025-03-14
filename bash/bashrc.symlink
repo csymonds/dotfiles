@@ -75,22 +75,21 @@ else
   color_prompt=
 fi
 
+# Python virtual environment prompt configuration
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+# Set prompt with virtual environment indicator
 if [ "$color_prompt" = yes ]; then
-  PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+  PS1='$(virtualenv_info)\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-  PS1='\u@\h:\w\$ '
+  PS1='$(virtualenv_info)\u@\h:\w\$ '
 fi
 unset color_prompt
 
-# Enable programmable completion features
-if [ -f /usr/share/bash-completion/bash_completion ]; then
-  . /usr/share/bash-completion/bash_completion
-elif [ -f /etc/bash_completion ]; then
-  . /etc/bash_completion
-fi
-
-if [ -f $HOME/bin/gimme ]; then
-    export GIMME_ENV=$HOME'/.gimme/envs/latest.env';
-    source $GIMME_ENV
+# Auto-activate Python virtual environment if present
+if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
+  source venv/bin/activate
+elif [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
+  source .venv/bin/activate
 fi
 

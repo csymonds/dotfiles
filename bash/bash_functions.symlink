@@ -89,3 +89,32 @@ batch_dot() {
     dot -Tps -o $file.ps $file
   done
 }
+
+# Python virtual environment helpers
+virtualenv_info() {
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    venv="${VIRTUAL_ENV##*/}"
+    echo "(${venv}) "
+  fi
+}
+
+# Create a new Python virtual environment
+mkenv() {
+  # Create a new Python virtual environment
+  python3 -m venv "${1:-venv}"
+  echo "Virtual environment '${1:-venv}' created. To activate, run: source ${1:-venv}/bin/activate"
+}
+
+# Change to project directory and activate its venv if it exists
+cdvenv() {
+  cd "$1" || return
+  if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+    echo "Activated venv for $(pwd)"
+  elif [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+    echo "Activated .venv for $(pwd)"
+  else
+    echo "No virtual environment found in current directory"
+  fi
+}

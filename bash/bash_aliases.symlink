@@ -40,3 +40,8 @@ alias gl='git log --oneline --graph'
 alias ga='git add'
 alias gc='git commit'
 alias gd='git diff'
+
+# Python development shortcuts
+alias py='python3'
+alias ipy='ipython'
+alias pip='python3 -m pip'

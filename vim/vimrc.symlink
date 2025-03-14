@@ -22,7 +22,6 @@ Plug 'morhetz/gruvbox'  " Alternative modern colorscheme
 
 " Code completion and language support
 Plug 'neoclide/coc.nvim', {'branch': 'release'} " Modern completion
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' } " Keep vim-go if you still use Go
 
 " Notes and documentation
 Plug 'xolox/vim-notes' | Plug 'xolox/vim-misc'  " Keep your existing notes plugin
@@ -68,7 +67,7 @@ catch /^Vim\%((\a\+)\)\=:E185/
   catch /^Vim\%((\a\+)\)\=:E185/
     colorscheme desert
   endtry
-endif
+endtry
 
 " Set color bar to maintain readability
 set cc=80
