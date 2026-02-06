@@ -1,8 +1,9 @@
-# Aliases for ls
-alias ll='ls -al --color=auto'
-alias ls='ls --color=auto'
+# ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
 
-# For YouCompleteMe Bash plugin
+# cmake (with Ninja and compile_commands.json for LSP)
 alias cmake='cmake -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=on'
 alias dmake='cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on'
 

@@ -1,7 +1,5 @@
 set nocompatible
 
-call pathogen#infect()
-
 set nowrap
 set tabstop=4
 set shiftwidth=4
@@ -27,11 +25,9 @@ set formatoptions+=roqn
 " size in KB
 set maxmempattern=20000
 
-" vim-colors-solarized
-"syntax enable
-"set background=dark
+" Colors
+set t_Co=256
 colorscheme desert
-"colorscheme solarized
 
 " Set color bar to maintain readability
 set cc=80
@@ -42,11 +38,10 @@ set wildignore=*.swp,*.bak,*.pyc,*.class,*.jar,*.pdf,*.aux,*.bbl,*.bcf,*.blg,*.c
 " Alter recognition of file extensions
 au BufNewFile,BufRead *.sbt setlocal ft=scala
 au BufNewFile,BufRead *.gnu setlocal ft=gnuplot
-au BufNewFile,BufRead *.md setlocal ft=notes
 
 filetype plugin indent on
 autocmd Filetype python set nosmartindent copyindent
-autocmd Filetype tex set wrap linebreak spell spelllang=en " tw=100 fo=tcqw
+autocmd Filetype tex set wrap linebreak spell spelllang=en
 autocmd Filetype make set noexpandtab
 autocmd Filetype go set noexpandtab
 
@@ -54,12 +49,12 @@ autocmd Filetype go set noexpandtab
 let g:tex_flavor = "latex"
 
 " airline
-set t_Co=16
+set laststatus=2
 
-" Ctrlp
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_custom_ignore = '\v[\/](out|tmp|\.(git|hg|svn))$'
+" fzf
+nnoremap <c-p> :Files<CR>
+nnoremap <c-b> :Buffers<CR>
+nnoremap <c-f> :Rg<CR>
 
 " Trim whitespace when file is written
 " autocmd BufWritePre * :%s/\s\+$//e
@@ -87,7 +82,6 @@ nnoremap j gj
 nnoremap k gk
 
 " More accessible make
-" nnoremap mm :make!<CR>
 nnoremap mm :!ninja<CR>
 nnoremap ,, :!./push<CR>
 
@@ -100,33 +94,42 @@ noremap <right> <nop>
 " Get out of insert mode without leaving the home row
 inoremap jj <ESC>
 
-" CLANG Format
-function FormatFile()
-    let l:lines="all"
-    py3f ~/.dotfiles/vim/vim.symlink/clang-format.py
-endfunction
-map <C-K> :call FormatFile()<cr>
-imap <C-K> <c-o>:call FormatFile()<cr>
-
 " Aliases for ex commands
 cnoreabbrev W w
 cnoreabbrev Q q
 cnoreabbrev WQ wq
 cnoreabbrev Wq wq
 
-" vim-notes plugin
-" note: vim-misc required for vim-notes
-let g:notes_directories = ['~/.notes']
-let g:notes_smart_quotes = 0
-let g:notes_unicode_enabled = 0
+" ----- LSP (yegappan/lsp) -----
+" Configure language servers
+function! s:LspSetup()
+    var lspServers = [
+        {
+            'name': 'clangd',
+            'filetype': ['c', 'cpp'],
+            'path': '/usr/bin/clangd',
+            'args': ['--background-index']
+        },
+        {
+            'name': 'gopls',
+            'filetype': ['go', 'gomod'],
+            'path': 'gopls',
+            'args': ['serve']
+        }
+    ]
+    autocmd User LspSetup call LspAddServer(lspServers)
+endfunction
 
-let g:notes_indents = 1
-let g:notes_indents_right = ">>"
-let g:notes_indents_left = "<<"
+if executable('clangd') || executable('gopls')
+    autocmd VimEnter * call s:LspSetup()
+endif
 
-highlight link notesEmailAddr Directory
-highlight link notesRealURL Special
-highlight link notesShortHeading None
-
-" YouCompleteMe (ycm) plugin
-let g:ycm_global_ycm_extra_conf = '~/.vim/.ycm_extra_conf.py'
+" LSP key mappings
+nnoremap gd :LspGotoDefinition<CR>
+nnoremap gr :LspShowReferences<CR>
+nnoremap K :LspHover<CR>
+nnoremap <leader>rn :LspRename<CR>
+nnoremap <leader>ca :LspCodeAction<CR>
+nnoremap [d :LspDiag prev<CR>
+nnoremap ]d :LspDiag next<CR>
+nnoremap <leader>ds :LspDiag show<CR>

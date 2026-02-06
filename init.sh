@@ -1,65 +1,68 @@
-#!/bin/sh
+#!/bin/bash
+#
+# init.sh - Ubuntu 24.04 environment setup
+#
+# Installs system packages and initializes dotfiles.
+# Designed to be non-interactive for Docker/CI use.
+#
+# Usage:
+#   ./init.sh          # full install (apt + dotfiles)
+#   ./init.sh --no-apt # skip apt install, just set up dotfiles
+#
 
-# apt
-sudo apt install build-essential cmake \
-libncurses5-dev libgnome2-dev libgnomeui-dev \
-libgtk2.0-dev libatk1.0-dev libbonoboui2-dev \
-libcairo2-dev libx11-dev libxpm-dev libxt-dev \
-python-dev python3-dev curl tmux
+set -euo pipefail
 
-# vim 
-mkdir ~/ven
-git clone https://github.com/vim/vim.git ~/ven 
-cd ~/ven/vim
-./configure --with-features=huge \
-            --enable-multibyte \
-	    --enable-pythoninterp=yes \
-	    --with-python-config-dir=/usr/lib/python2.7/config-x86_64-linux-gnu \
-	    --enable-python3interp=yes \
-	    --with-python3-config-dir=/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu \
-            --enable-gui=gtk2 \
-            --enable-cscope \
-	   --prefix=/usr/local
-make VIMRUNTIMEDIR=/usr/local/share/vim/vim81
-sudo make install
+DOTDIR="$(cd "$(dirname "$0")" && pwd)"
 
+# ---- Helpers ----
+info()  { echo "[init] $*"; }
+error() { echo "[init] ERROR: $*" >&2; }
 
-# backup
-cd ~/
-mkdir bk
-mv .bashrc bk/bashrc_bk
-mv .vimrc bk/vimrc_bk
+# ---- Parse args ----
+SKIP_APT=false
+for arg in "$@"; do
+    case "$arg" in
+        --no-apt) SKIP_APT=true ;;
+        *) error "Unknown argument: $arg"; exit 1 ;;
+    esac
+done
 
+# ---- APT packages ----
+if [ "$SKIP_APT" = false ]; then
+    info "Installing apt packages..."
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq \
+        build-essential \
+        cmake \
+        ninja-build \
+        vim \
+        tmux \
+        curl \
+        git \
+        fzf \
+        ripgrep \
+        cdargs \
+        clangd \
+        clang-format \
+        python3 \
+        python3-pip
+    info "apt packages installed."
+fi
 
-# install the dotfiles so the path is set for gimme
-cd .dotfiles
-./install.sh
-cd ~/
-source .bashrc
-
-
-# go gimme
-mkdir bin
-curl -sL -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-chmod +x ~/bin/gimme
-eval "$(GIMME_GO_VERSION=1.15 gimme)"
-echo "# gimme" >> ~/.bash_profile
-echo 'eval "$(GIMME_GO_VERSION=1.15 gimme)"' >> ~/.bash_profile
-
-
-# set up the Go environment
-mkdir -p ~/dev/go/bin
-mkdir -p ~/dev/go/src/github.com/csymonds
-
-
-# .dotfiles
-cd ~/.dotfiles
+# ---- Git submodules (vim plugins) ----
+info "Initializing vim plugin submodules..."
+cd "$DOTDIR"
 git submodule init
 git submodule update --recursive
+info "Vim plugins ready."
 
+# ---- Install dotfile symlinks ----
+info "Installing dotfile symlinks..."
+"$DOTDIR/install.sh" --force
+info "Symlinks installed."
 
-# YCM
-cd ~/.dotfiles/vim/vim.symlink/bundle/YouCompleteMe
-git submodule update --init --recursive
-python3 install.py --clang-completer --go-completer
+# ---- fzf key bindings ----
+# fzf from apt includes shell integration files;
+# bashrc sources them automatically.
 
+info "Done. Start a new shell or run: source ~/.bashrc"
